@@ -181,7 +181,16 @@ router.post('/login', [
              req.ip;
     };
 
-    const userIP = getUserIP(req);
+    const rawIP = getUserIP(req);
+    
+    // Convert IPv6 loopback to IPv4 for better readability
+    let userIP = rawIP;
+    if (rawIP === '::1' || rawIP === '::ffff:127.0.0.1') {
+      userIP = '127.0.0.1'; // localhost
+    } else if (rawIP && rawIP.startsWith('::ffff:')) {
+      // Extract IPv4 from IPv6-mapped address
+      userIP = rawIP.substring(7);
+    }
 
     // Update last login and IP
     user.lastLogin = new Date();
