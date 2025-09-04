@@ -171,8 +171,21 @@ router.post('/login', [
       });
     }
 
-    // Update last login
+    // Get user's IP address
+    const getUserIP = (req) => {
+      return req.headers['x-forwarded-for'] || 
+             req.headers['x-real-ip'] || 
+             req.connection.remoteAddress || 
+             req.socket.remoteAddress ||
+             (req.connection.socket ? req.connection.socket.remoteAddress : null) ||
+             req.ip;
+    };
+
+    const userIP = getUserIP(req);
+
+    // Update last login and IP
     user.lastLogin = new Date();
+    user.lastLoginIP = userIP;
     await user.save({ validateBeforeSave: false });
 
     // Generate token
@@ -191,7 +204,8 @@ router.post('/login', [
           company: user.company,
           role: user.role,
           isEmailVerified: user.isEmailVerified,
-          lastLogin: user.lastLogin
+          lastLogin: user.lastLogin,
+          lastLoginIP: user.lastLoginIP
         }
       }
     });
